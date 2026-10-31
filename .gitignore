@@ -1,0 +1,40 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Test, type-checker and linter caches
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Documentation build output
+site/
+
+# Local environment and secrets
+.env
+.env.*
+
+# Editor / tool local state
+.idea/
+.vscode/
+.qoder/
+skills/
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Temporary local verification artifacts
+_verify_*
+
+# Internal specifications and audit notes (not published)
+SPEC.md
+AUDIT_REPORT.md

@@ -1,0 +1,112 @@
+site_name: iranquant
+site_description: Async-first TSETMC and Codal market-data client for the Iranian capital market
+site_author: Saeed Dadjoyan Aghdami
+site_url: https://dadjoyan.github.io/iranquant/
+repo_url: https://github.com/dadjoyan/iranquant
+repo_name: dadjoyan/iranquant
+edit_uri: blob/main/docs/
+use_directory_urls: true
+
+theme:
+  name: material
+  language: en
+  highlightjs: false
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tooltips
+    - toc.follow
+  icon:
+    logo: material/chart-line
+    repo: fontawesome/brands/github
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths:
+            - src
+          options:
+            docstring_style: google
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            members: true
+            members_order: source
+            separate_signature: true
+            show_signature_annotations: true
+            merge_init_into_class: true
+            inherited_members: false
+            heading_level: 2
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      title: On this page
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - Home: index.md
+  - Quickstart: quickstart.md
+  - User Guide:
+      - Market Data: guide/market.md
+      - Codal Reports: guide/codal.md
+      - Quant Analytics: guide/quant.md
+      - Streaming: guide/streaming.md
+      - Caching & Polars: guide/caching-and-polars.md
+  - API Reference:
+      - Top-level: reference/top-level.md
+      - Market: reference/market.md
+      - Codal: reference/codal.md
+      - Quant: reference/quant.md
+      - Stream: reference/stream.md
+  - راهنمای فارسی: fa/index.md
