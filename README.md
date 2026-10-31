@@ -67,27 +67,15 @@ flowchart LR
     DF --> STREAM
 ```
 
-## Feature comparison
+## Architecture Overview
 
-| Capability | **iranquant** | `pytse-client` | `finpy-tse` |
-|---|---|---|---|
-| Async-native HTTP client | Yes | No | No |
-| Safe synchronous facade | Yes | Yes | Yes |
-| Pandas output | Yes | Yes | Yes |
-| Polars output | Yes | No | No |
-| Pydantic V2 payload validation | Yes | No | No |
-| TSETMC history & client type | Yes | Yes | Yes |
-| Live MarketWatch / order book / intraday | Yes | Yes | Partial |
-| Overall / equal-weight / sector indices | Yes | Partial | Partial |
-| Codal announcement search | Yes | No | Partial |
-| Codal table reconstruction (`datasource`) | Yes | No | No |
-| Smart-money / movement-power analytics | Yes | No | No |
-| Event-driven market watcher | Yes | No | No |
-| Parquet caching | Yes | No | No |
-| Typed exception hierarchy | Yes | No | Partial |
-
-> Legacy-library comparison reflects each project's published scope at the time of
-> writing; check their current releases for the latest capabilities.
+| Module | Scope | Key Capabilities |
+| :--- | :--- | :--- |
+| `iranquant.market` | TSETMC Market Data | Historical OHLCV, backward price adjustment (`all`, `capital`, `cash`), client-type (Haghighi/Hoghooghi), live MarketWatch, 5-level order book, intraday trades, and market/sector indices |
+| `iranquant.codal` | Codal Announcements & Parser | Paginated letter search, HTML `datasource` extraction without fragile DOM scraping, multi-table reconstruction, and automated monthly sales MoM/YoY analysis |
+| `iranquant.quant` | Quantitative Analytics | Smart-money flow, buyer-power ratios, movement-power scoring, multi-timeframe swing-leg detection, and vectorized buy/sell queue screeners |
+| `iranquant.stream` | Event-Driven Polling | Async `MarketWatcher` with market-hours awareness (Saturday–Wednesday, 08:45–12:30 IRST) and callback hooks |
+| `iranquant.core` | Transport & Storage | Async `httpx` client with retry backoff, Persian text/digit normalizer, Pandas/Polars dual-engine builder, and local Parquet caching |
 
 ---
 
