@@ -26,12 +26,18 @@ from iranquant.codal import (
 from iranquant.codal import (
     monthly_sales_summary as _monthly_sales_summary,
 )
-from iranquant.config import DEFAULT_TIMEOUT, MAX_CONCURRENCY, OVERALL_INDEX_CODE
+from iranquant.config import (
+    DEFAULT_TIMEOUT,
+    MAX_CONCURRENCY,
+    OVERALL_INDEX_CODE,
+    IranQuantConfig,
+)
 from iranquant.core.client import AsyncHTTPClient
 from iranquant.core.dataframe import DataFrame, Engine, to_dataframe
 from iranquant.core.normalizer import normalize_persian
 from iranquant.core.sync import run_sync
 from iranquant.exceptions import (
+    IranQuantConnectionError,
     IranQuantError,
     NetworkError,
     ParseError,
@@ -87,6 +93,7 @@ class AsyncIranQuant:
         timeout: float = DEFAULT_TIMEOUT,
         max_concurrency: int = MAX_CONCURRENCY,
         proxy: str | None = None,
+        config: IranQuantConfig | None = None,
     ) -> None:
         """Create the async client.
 
@@ -97,14 +104,22 @@ class AsyncIranQuant:
                 :data:`iranquant.config.MAX_CONCURRENCY` (10).
             proxy: Optional explicit proxy URL.  Environment proxies are
                 ignored unless this is supplied.
+            config: TLS and fallback policy. Defaults to
+                :class:`~iranquant.config.IranQuantConfig`, which reads
+                ``IRANQUANT_VERIFY_SSL`` and
+                ``IRANQUANT_ALLOW_TLS_FALLBACK``.
 
         Examples:
             >>> client = AsyncIranQuant(proxy="http://127.0.0.1:9090")
+            >>> strict = AsyncIranQuant(
+            ...     config=IranQuantConfig(allow_tls_fallback=False)
+            ... )
         """
         self._client = AsyncHTTPClient(
             timeout=timeout,
             max_concurrency=max_concurrency,
             proxy=proxy,
+            config=config,
         )
 
     @property
@@ -1784,6 +1799,8 @@ __all__ = [
     "DataFrame",
     "Engine",
     "IranQuant",
+    "IranQuantConfig",
+    "IranQuantConnectionError",
     "IranQuantError",
     "MarketEvent",
     "MarketScreener",

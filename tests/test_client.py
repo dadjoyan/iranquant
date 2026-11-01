@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import warnings
+
 import httpx
 import pytest
 import respx
 
-from iranquant.config import MARKET_WATCH_URL
+from iranquant.config import MARKET_WATCH_URL, IranQuantConfig
 from iranquant.core.client import AsyncHTTPClient
-from iranquant.exceptions import NetworkError, ParseError
+from iranquant.exceptions import IranQuantConnectionError, NetworkError, ParseError
 
 
 @respx.mock
@@ -49,6 +51,55 @@ async def test_tsetmc_connect_error_uses_insecure_http1_fallback(
 
     assert await client.get_json("https://cdn.tsetmc.com/api/test") == {"ok": True}
     assert route.call_count == 2
+
+
+@respx.mock
+async def test_tls_failure_without_fallback_raises_connection_error() -> None:
+    client = AsyncHTTPClient(
+        max_retries=3,
+        retry_wait=0,
+        config=IranQuantConfig(verify_ssl=True, allow_tls_fallback=False),
+    )
+    try:
+        route = respx.get("https://cdn.tsetmc.com/api/strict").mock(
+            side_effect=httpx.ConnectError("SSL: CERTIFICATE_VERIFY_FAILED")
+        )
+
+        with pytest.raises(IranQuantConnectionError):
+            await client.get_json("https://cdn.tsetmc.com/api/strict")
+        assert route.call_count == 1
+    finally:
+        await client.aclose()
+
+
+@respx.mock
+async def test_tls_fallback_warning_is_emitted_once() -> None:
+    client = AsyncHTTPClient(
+        max_retries=1,
+        retry_wait=0,
+        config=IranQuantConfig(verify_ssl=True, allow_tls_fallback=True),
+    )
+    try:
+        route = respx.get("https://cdn.tsetmc.com/api/warn").mock(
+            side_effect=[
+                httpx.ConnectError("SSL: CERTIFICATE_VERIFY_FAILED"),
+                httpx.Response(200, json={"ok": True}),
+                httpx.ConnectError("SSL: CERTIFICATE_VERIFY_FAILED"),
+                httpx.Response(200, json={"ok": True}),
+            ]
+        )
+
+        with pytest.warns(UserWarning, match="falling back to unverified transport"):
+            assert await client.get_json("https://cdn.tsetmc.com/api/warn") == {"ok": True}
+
+        with warnings.catch_warnings(record=True) as captured:
+            warnings.simplefilter("always")
+            assert await client.get_json("https://cdn.tsetmc.com/api/warn") == {"ok": True}
+
+        assert captured == []
+        assert route.call_count == 4
+    finally:
+        await client.aclose()
 
 
 @respx.mock

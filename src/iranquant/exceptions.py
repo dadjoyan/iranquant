@@ -26,6 +26,14 @@ class NetworkError(IranQuantError):
     """
 
 
+class IranQuantConnectionError(NetworkError):
+    """Raised when TLS verification fails and fallback is disabled.
+
+    Inherits from :class:`NetworkError`, so existing handlers keep working,
+    but is excluded from retry loops because the failure is deterministic.
+    """
+
+
 class SymbolNotFoundError(IranQuantError):
     """Raised when a symbol cannot be resolved to a TSETMC instrument code.
 

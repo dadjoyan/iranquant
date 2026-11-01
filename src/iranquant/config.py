@@ -1,9 +1,43 @@
-"""Static configuration: endpoints, headers, timeouts and cache location."""
+"""Static configuration: endpoints, headers, timeouts, cache location and TLS policy."""
 
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass, field
 from pathlib import Path
+
+
+def _env_flag(name: str, default: bool) -> bool:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+@dataclass(frozen=True)
+class IranQuantConfig:
+    """Transport security policy.
+
+    Values are read from the environment when omitted, and explicit keyword
+    arguments take precedence.
+
+    Args:
+        verify_ssl: Verify upstream TLS certificates. Defaults to
+            ``IRANQUANT_VERIFY_SSL`` or ``True``.
+        allow_tls_fallback: Retry once over an unverified transport when
+            certificate verification fails. Defaults to
+            ``IRANQUANT_ALLOW_TLS_FALLBACK`` or ``True``.
+
+    Examples:
+        >>> IranQuantConfig(allow_tls_fallback=False).allow_tls_fallback
+        False
+    """
+
+    verify_ssl: bool = field(default_factory=lambda: _env_flag("IRANQUANT_VERIFY_SSL", True))
+    allow_tls_fallback: bool = field(
+        default_factory=lambda: _env_flag("IRANQUANT_ALLOW_TLS_FALLBACK", True)
+    )
+
 
 TSETMC_HEADERS: dict[str, str] = {
     "User-Agent": (
