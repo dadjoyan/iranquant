@@ -8,6 +8,7 @@ from typing import Any
 
 import pytest
 
+from iranquant.config import IranQuantConfig
 from iranquant.core.client import AsyncHTTPClient
 from iranquant.market import symbol as symbol_module
 
@@ -21,7 +22,12 @@ def _clear_symbol_caches() -> Iterator[None]:
 
 @pytest.fixture
 async def client() -> AsyncIterator[AsyncHTTPClient]:
-    http = AsyncHTTPClient(timeout=5.0, max_retries=2, retry_wait=0)
+    http = AsyncHTTPClient(
+        timeout=5.0,
+        max_retries=2,
+        retry_wait=0,
+        config=IranQuantConfig(verify_ssl=True, allow_tls_fallback=True),
+    )
     try:
         yield http
     finally:

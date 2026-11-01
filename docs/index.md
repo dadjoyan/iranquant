@@ -28,7 +28,7 @@ print(frame.tail())
 | **Monthly sales** | Extracts current-month, YTD and prior-year sales from the standard تولید و فروش table and computes MoM/YoY growth. |
 | **CLI** | `iranquant search`, `history`, `screener`, `indices` and `codal --parse-latest`, rendered with Rich tables. |
 | **Watcher** | MarketWatch polling with `BUY_QUEUE_LOCKED`, `BUY_QUEUE_BROKEN`, `SELL_QUEUE_LOCKED`, `SELL_QUEUE_BROKEN` and `VOLUME_SPIKE` events. |
-| **Networking** | Environment proxies are ignored by default; `*.codal.ir` uses a certificate-relaxed transport and TSETMC gets an HTTP/1.1 no-verify fallback. |
+| **Networking** | Environment proxies are ignored by default. TLS is verified first for TSETMC and Codal; certificate failures fall back once to an unverified transport only when `allow_tls_fallback=True`, with a one-time warning. |
 
 ## Architecture
 
@@ -61,6 +61,15 @@ flowchart LR
     I --> N[(Local Parquet cache)]
     J --> N
 ```
+
+## Data conventions
+
+- **Units.** TSETMC prices and traded values are in IRR (Rials); volume is share count. Codal financial and monthly figures are in Million IRR unless the table header states otherwise.
+- **Calendars.** Historical and client-type frames include Gregorian `date` and Jalali `jdate` (`YYYY-MM-DD`) in `Asia/Tehran`.
+- **Price adjustment.** Factors compound backwards from the newest bar. Ratios are `pDrCotVal / pc` for `all`, `(pc - dps) / pc` for `cash`, and `numberOfShareOld / numberOfShareNew` for `capital`. The public API exposes `all`, `capital_only` and `none`.
+- **Quant heuristics.** `smart_money_entry`, `smart_money_exit` and `movement_power_score` are deterministic screening rules (`vol_ratio >= 1.8`, `buyer_power_ratio >= 1.5`, `net_real_value > 0`), not backtested alpha or financial advice.
+- **Polling watcher.** `MarketWatcher` diffs periodic HTTP MarketWatch snapshots; it is not a WebSocket tick feed.
+- **TLS and terms.** Verification is attempted first. Fail closed with `IranQuantConfig(allow_tls_fallback=False)`; environment overrides are `IRANQUANT_VERIFY_SSL` and `IRANQUANT_ALLOW_TLS_FALLBACK`. Code is MIT-licensed; market data remains subject to TSETMC and Codal terms.
 
 ## Installation
 

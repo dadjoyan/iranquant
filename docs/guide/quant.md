@@ -13,6 +13,50 @@ from iranquant import (
 )
 ```
 
+## Conventions and limitations
+
+### Units
+
+TSETMC prices and traded values are in IRR (Rials); `volume` and the client-type `*_Volume` columns are share counts. Codal financial and monthly figures are in Million IRR unless the table header states otherwise. The `*_per_capita_m` columns divide Rial per-capita values by `1e7`, so they are Million Tomans.
+
+### Calendars
+
+Historical and client-type frames include Gregorian `date` and Jalali `jdate` (`YYYY-MM-DD`). Conversion uses `Asia/Tehran`; `date` carries no timezone.
+
+### Price adjustment
+
+`history(adjust=...)` compounds one ratio per bar backwards from the newest
+bar (`F[n-1] = 1`, `F[i] = F[i+1] * r[i]`, `price[i] *= F[i]`). The nominal
+ratios are:
+
+| Adjustment | Ratio `r` |
+| --- | --- |
+| `all` | `pDrCotVal / pc` |
+| `cash` | `(pc - dps) / pc` |
+| `capital` | `numberOfShareOld / numberOfShareNew` |
+
+`pDrCotVal` is the last traded price, `pc` the official closing price and `dps`
+the dividend per share. The public `adjust` values are `all`, `capital_only`
+and `none`. `all` uses the equivalent next-bar gap
+`prev_price[t+1] / final_price[t]`; `capital_only` applies the capital ratio.
+
+### Heuristic status
+
+`smart_money_entry`, `smart_money_exit` and `movement_power_score` are
+deterministic rule-based screening heuristics. Entry requires
+`vol_ratio >= 1.8`, `buyer_power_ratio >= 1.5`, `net_real_value > 0` and
+`close >= final_price`; exit mirrors those thresholds. The score is a bounded
+efficiency-ratio aggregate. None of these outputs is a backtested alpha signal,
+a forecast, or financial advice.
+
+### Polling and TLS
+
+`MarketWatcher` compares periodic HTTP MarketWatch snapshots; it is not a
+WebSocket tick feed, and transitions between polls are not observable. TLS is
+verified first for TSETMC and Codal. Pass
+`IranQuantConfig(allow_tls_fallback=False)` to fail closed instead of using the
+warned unverified fallback.
+
 ## Money flow and smart money
 
 === "One call"

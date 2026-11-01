@@ -213,12 +213,11 @@ with `ip route add <domestic CIDR> via <local-gateway>`, or use your VPN app's
 ### Option C — run on an Iranian server
 
 If your production host sits inside Iran, leave `proxy=None` and let the
-library connect directly. On SSL/proxy-style failures:
-
-- `*.tsetmc.com` is retried once over an HTTP/1.1, certificate-relaxed
-  transport;
-- `*.codal.ir` always uses its dedicated certificate-relaxed transport because
-  its chain frequently fails strict verification.
+library connect directly. TLS is verified first for both `*.tsetmc.com` and
+`*.codal.ir`. On a certificate failure the request is retried once over an
+unverified transport when `allow_tls_fallback=True`; the first fallback emits a
+`UserWarning`. Set `IranQuantConfig(allow_tls_fallback=False)` or
+`IRANQUANT_ALLOW_TLS_FALLBACK=false` to fail closed.
 
 !!! warning "Market hours"
     TSETMC sessions run Saturday–Wednesday, 09:00–12:30 Tehran time.

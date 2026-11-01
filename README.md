@@ -67,15 +67,65 @@ flowchart LR
     DF --> STREAM
 ```
 
-## Architecture Overview
+### Module scope
 
 | Module | Scope | Key Capabilities |
 | :--- | :--- | :--- |
-| `iranquant.market` | TSETMC Market Data | Historical OHLCV, backward price adjustment (`all`, `capital`, `cash`), client-type (Haghighi/Hoghooghi), live MarketWatch, 5-level order book, intraday trades, and market/sector indices |
+| `iranquant.market` | TSETMC Market Data | Historical OHLCV, backward price adjustment (`all`, `capital_only`, `none`), client-type (Haghighi/Hoghooghi), live MarketWatch, 5-level order book, intraday trades, and market/sector indices |
 | `iranquant.codal` | Codal Announcements & Parser | Paginated letter search, HTML `datasource` extraction without fragile DOM scraping, multi-table reconstruction, and automated monthly sales MoM/YoY analysis |
 | `iranquant.quant` | Quantitative Analytics | Smart-money flow, buyer-power ratios, movement-power scoring, multi-timeframe swing-leg detection, and vectorized buy/sell queue screeners |
 | `iranquant.stream` | Event-Driven Polling | Async `MarketWatcher` with market-hours awareness (Saturday–Wednesday, 08:45–12:30 IRST) and callback hooks |
 | `iranquant.core` | Transport & Storage | Async `httpx` client with retry backoff, Persian text/digit normalizer, Pandas/Polars dual-engine builder, and local Parquet caching |
+
+## Data Conventions & Limitations
+
+### Units
+
+- TSETMC prices (`open`, `high`, `low`, `close`, `final_price`, `prev_price`, `tmax`, `tmin`) and traded values (`value`) are in IRR (Rials). `volume` and the client-type `*_Volume` columns are share counts.
+- Codal financial and monthly figures are in Million IRR unless the table header states another unit. `*_per_capita_m` columns in the quant output are in Million Tomans.
+
+### Calendars
+
+Historical and client-type DataFrames carry both `date` (Gregorian `datetime.date`) and `jdate` (Jalali `YYYY-MM-DD`). Conversion uses `Asia/Tehran`; the `date` column has no attached timezone.
+
+### Price adjustment
+
+`history(adjust=...)` computes one ratio per bar and compounds it backwards from the newest bar:
+
+```text
+F[n-1] = 1
+F[i]   = F[i+1] * r[i]
+price[i] *= F[i]
+```
+
+| Adjustment | Ratio `r` |
+| --- | --- |
+| `all` | `pDrCotVal / pc` |
+| `cash` | `(pc - dps) / pc` |
+| `capital` | `numberOfShareOld / numberOfShareNew` |
+
+`pDrCotVal` is the last traded price, `pc` the official closing price and `dps` the dividend per share. The public `adjust` values are `all`, `capital_only` and `none`; `all` is implemented through the equivalent next-bar gap `prev_price[t+1] / final_price[t]`, and `capital_only` applies the capital ratio. No separate `cash` mode is exposed.
+
+### Quant heuristics
+
+`smart_money_entry`, `smart_money_exit` and `movement_power_score` are deterministic rule-based screening heuristics. Entry requires `vol_ratio >= 1.8`, `buyer_power_ratio >= 1.5` and `net_real_value > 0` (plus `close >= final_price`); exit mirrors those conditions at `buyer_power_ratio <= 0.67`. The movement score is a bounded efficiency-ratio aggregate in `[-100, +100]`. These outputs are not backtested alpha signals, forecasts, or financial advice.
+
+### Polling watcher
+
+`MarketWatcher` compares successive HTTP MarketWatch snapshots. It is not a WebSocket tick feed; event latency is bounded by the poll `interval`, and transitions between polls are not observable.
+
+### TLS and data terms
+
+TLS verification is attempted first for both TSETMC and Codal. To fail closed instead of retrying over an unverified transport:
+
+```python
+from iranquant import AsyncIranQuant, IranQuantConfig
+
+async with AsyncIranQuant(config=IranQuantConfig(allow_tls_fallback=False)) as client:
+    ...
+```
+
+The environment equivalents are `IRANQUANT_VERIFY_SSL` and `IRANQUANT_ALLOW_TLS_FALLBACK`. The `iranquant` source code is MIT-licensed. Retrieved market data remains subject to TSETMC and Codal terms of use, which govern redistribution and commercial use.
 
 ---
 
@@ -435,9 +485,12 @@ async with AsyncIranQuant(proxy="http://127.0.0.1:9090") as client:
     ...
 ```
 
-- On `ssl.SSLError` / `ConnectError`, requests to `*.tsetmc.com` are retried once
-  over an insecure HTTP/1.1 transport; `*.codal.ir` always uses its own
-  verification-relaxed transport.
+- On a certificate failure, the request is retried once over an unverified
+  transport when `allow_tls_fallback=True` (the default). The first fallback
+  emits a `UserWarning`; it is never silent.
+- To fail closed on certificate errors, use
+  `IranQuantConfig(allow_tls_fallback=False)` or set
+  `IRANQUANT_ALLOW_TLS_FALLBACK=false`.
 
 ### Error handling
 
