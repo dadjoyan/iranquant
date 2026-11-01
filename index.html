@@ -469,6 +469,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#data-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1036,6 +1047,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#data-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data conventions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#installation" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1147,7 +1169,7 @@ watcher.</p>
 </tr>
 <tr>
 <td><strong>Networking</strong></td>
-<td>Environment proxies are ignored by default; <code>*.codal.ir</code> uses a certificate-relaxed transport and TSETMC gets an HTTP/1.1 no-verify fallback.</td>
+<td>Environment proxies are ignored by default. TLS is verified first for TSETMC and Codal; certificate failures fall back once to an unverified transport only when <code>allow_tls_fallback=True</code>, with a one-time warning.</td>
 </tr>
 </tbody>
 </table>
@@ -1179,6 +1201,15 @@ watcher.</p>
 
     I --&gt; N[(Local Parquet cache)]
     J --&gt; N</code></pre>
+<h2 id="data-conventions">Data conventions<a class="headerlink" href="#data-conventions" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Units.</strong> TSETMC prices and traded values are in IRR (Rials); volume is share count. Codal financial and monthly figures are in Million IRR unless the table header states otherwise.</li>
+<li><strong>Calendars.</strong> Historical and client-type frames include Gregorian <code>date</code> and Jalali <code>jdate</code> (<code>YYYY-MM-DD</code>) in <code>Asia/Tehran</code>.</li>
+<li><strong>Price adjustment.</strong> Factors compound backwards from the newest bar. Ratios are <code>pDrCotVal / pc</code> for <code>all</code>, <code>(pc - dps) / pc</code> for <code>cash</code>, and <code>numberOfShareOld / numberOfShareNew</code> for <code>capital</code>. The public API exposes <code>all</code>, <code>capital_only</code> and <code>none</code>.</li>
+<li><strong>Quant heuristics.</strong> <code>smart_money_entry</code>, <code>smart_money_exit</code> and <code>movement_power_score</code> are deterministic screening rules (<code>vol_ratio &gt;= 1.8</code>, <code>buyer_power_ratio &gt;= 1.5</code>, <code>net_real_value &gt; 0</code>), not backtested alpha or financial advice.</li>
+<li><strong>Polling watcher.</strong> <code>MarketWatcher</code> diffs periodic HTTP MarketWatch snapshots; it is not a WebSocket tick feed.</li>
+<li><strong>TLS and terms.</strong> Verification is attempted first. Fail closed with <code>IranQuantConfig(allow_tls_fallback=False)</code>; environment overrides are <code>IRANQUANT_VERIFY_SSL</code> and <code>IRANQUANT_ALLOW_TLS_FALLBACK</code>. Code is MIT-licensed; market data remains subject to TSETMC and Codal terms.</li>
+</ul>
 <h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>iranquant
 </span></code></pre></div>

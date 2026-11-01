@@ -1469,13 +1469,11 @@ with <code>ip route add &lt;domestic CIDR&gt; via &lt;local-gateway&gt;</code>, 
 </ul>
 <h3 id="option-c-run-on-an-iranian-server">Option C — run on an Iranian server<a class="headerlink" href="#option-c-run-on-an-iranian-server" title="Permanent link">&para;</a></h3>
 <p>If your production host sits inside Iran, leave <code>proxy=None</code> and let the
-library connect directly. On SSL/proxy-style failures:</p>
-<ul>
-<li><code>*.tsetmc.com</code> is retried once over an HTTP/1.1, certificate-relaxed
-  transport;</li>
-<li><code>*.codal.ir</code> always uses its dedicated certificate-relaxed transport because
-  its chain frequently fails strict verification.</li>
-</ul>
+library connect directly. TLS is verified first for both <code>*.tsetmc.com</code> and
+<code>*.codal.ir</code>. On a certificate failure the request is retried once over an
+unverified transport when <code>allow_tls_fallback=True</code>; the first fallback emits a
+<code>UserWarning</code>. Set <code>IranQuantConfig(allow_tls_fallback=False)</code> or
+<code>IRANQUANT_ALLOW_TLS_FALLBACK=false</code> to fail closed.</p>
 <div class="admonition warning">
 <p class="admonition-title">Market hours</p>
 <p>TSETMC sessions run Saturday–Wednesday, 09:00–12:30 Tehran time.

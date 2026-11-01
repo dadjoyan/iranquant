@@ -1785,13 +1785,12 @@ WireGuard با <code>AllowedIPs = 0.0.0.0/0, ::/0</code> می‌توانید م�
 </ul>
 <h3 id="_8">گزینهٔ ۳: اجرا روی سرور داخل ایران<a class="headerlink" href="#_8" title="Permanent link">&para;</a></h3>
 <p>اگر سرور شما داخل ایران است، <code>proxy=None</code> را نگه دارید و اتصال مستقیم برقرار
-کنید. در صورت خطای SSL یا پروکسی:</p>
-<ul>
-<li>برای <code>*.tsetmc.com</code> یک بار تلاش دوباره روی ترانسپورت HTTP/1.1 بدون بررسی
-  گواهی انجام می‌شود؛</li>
-<li>برای <code>*.codal.ir</code> همیشه از ترانسپورت مخصوص با بررسی گواهی آسان‌گیر استفاده
-  می‌شود.</li>
-</ul>
+کنید. بررسی گواهی TLS ابتدا برای <code>*.tsetmc.com</code> و <code>*.codal.ir</code> انجام می‌شود.
+در صورت شکست بررسی، اگر <code>allow_tls_fallback=True</code> باشد یک بار روی ترانسپورت
+بدون بررسی گواهی تلاش دوباره می‌شود و نخستین بارگذاری هشدار <code>UserWarning</code>
+می‌دهد. برای جلوگیری از این بازگشت، از
+<code>IranQuantConfig(allow_tls_fallback=False)</code> یا
+<code>IRANQUANT_ALLOW_TLS_FALLBACK=false</code> استفاده کنید.</p>
 <div class="admonition warning">
 <p class="admonition-title">ساعت بازار</p>
 <p>جلسات TSETMC شنبه تا چهارشنبه، ۹:۰۰ تا ۱۲:۳۰ به وقت تهران است. برای جلوگیری

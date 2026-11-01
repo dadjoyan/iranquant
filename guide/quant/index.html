@@ -628,6 +628,78 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#conventions-and-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions and limitations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conventions and limitations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#units" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Units
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calendars" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calendars
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#price-adjustment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Price adjustment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heuristic-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Heuristic status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#polling-and-tls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Polling and TLS
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#money-flow-and-smart-money" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1116,6 +1188,78 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#conventions-and-limitations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conventions and limitations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Conventions and limitations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#units" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Units
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#calendars" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Calendars
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#price-adjustment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Price adjustment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#heuristic-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Heuristic status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#polling-and-tls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Polling and TLS
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#money-flow-and-smart-money" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1296,6 +1440,54 @@ engine type</strong>. They do not mutate their input.</p>
 </span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>    <span class="n">MarketScreener</span><span class="p">,</span>
 </span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="p">)</span>
 </span></code></pre></div>
+<h2 id="conventions-and-limitations">Conventions and limitations<a class="headerlink" href="#conventions-and-limitations" title="Permanent link">&para;</a></h2>
+<h3 id="units">Units<a class="headerlink" href="#units" title="Permanent link">&para;</a></h3>
+<p>TSETMC prices and traded values are in IRR (Rials); <code>volume</code> and the client-type <code>*_Volume</code> columns are share counts. Codal financial and monthly figures are in Million IRR unless the table header states otherwise. The <code>*_per_capita_m</code> columns divide Rial per-capita values by <code>1e7</code>, so they are Million Tomans.</p>
+<h3 id="calendars">Calendars<a class="headerlink" href="#calendars" title="Permanent link">&para;</a></h3>
+<p>Historical and client-type frames include Gregorian <code>date</code> and Jalali <code>jdate</code> (<code>YYYY-MM-DD</code>). Conversion uses <code>Asia/Tehran</code>; <code>date</code> carries no timezone.</p>
+<h3 id="price-adjustment">Price adjustment<a class="headerlink" href="#price-adjustment" title="Permanent link">&para;</a></h3>
+<p><code>history(adjust=...)</code> compounds one ratio per bar backwards from the newest
+bar (<code>F[n-1] = 1</code>, <code>F[i] = F[i+1] * r[i]</code>, <code>price[i] *= F[i]</code>). The nominal
+ratios are:</p>
+<table>
+<thead>
+<tr>
+<th>Adjustment</th>
+<th>Ratio <code>r</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>all</code></td>
+<td><code>pDrCotVal / pc</code></td>
+</tr>
+<tr>
+<td><code>cash</code></td>
+<td><code>(pc - dps) / pc</code></td>
+</tr>
+<tr>
+<td><code>capital</code></td>
+<td><code>numberOfShareOld / numberOfShareNew</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>pDrCotVal</code> is the last traded price, <code>pc</code> the official closing price and <code>dps</code>
+the dividend per share. The public <code>adjust</code> values are <code>all</code>, <code>capital_only</code>
+and <code>none</code>. <code>all</code> uses the equivalent next-bar gap
+<code>prev_price[t+1] / final_price[t]</code>; <code>capital_only</code> applies the capital ratio.</p>
+<h3 id="heuristic-status">Heuristic status<a class="headerlink" href="#heuristic-status" title="Permanent link">&para;</a></h3>
+<p><code>smart_money_entry</code>, <code>smart_money_exit</code> and <code>movement_power_score</code> are
+deterministic rule-based screening heuristics. Entry requires
+<code>vol_ratio &gt;= 1.8</code>, <code>buyer_power_ratio &gt;= 1.5</code>, <code>net_real_value &gt; 0</code> and
+<code>close &gt;= final_price</code>; exit mirrors those thresholds. The score is a bounded
+efficiency-ratio aggregate. None of these outputs is a backtested alpha signal,
+a forecast, or financial advice.</p>
+<h3 id="polling-and-tls">Polling and TLS<a class="headerlink" href="#polling-and-tls" title="Permanent link">&para;</a></h3>
+<p><code>MarketWatcher</code> compares periodic HTTP MarketWatch snapshots; it is not a
+WebSocket tick feed, and transitions between polls are not observable. TLS is
+verified first for TSETMC and Codal. Pass
+<code>IranQuantConfig(allow_tls_fallback=False)</code> to fail closed instead of using the
+warned unverified fallback.</p>
 <h2 id="money-flow-and-smart-money">Money flow and smart money<a class="headerlink" href="#money-flow-and-smart-money" title="Permanent link">&para;</a></h2>
 <div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">One call</label><label for="__tabbed_1_2">Lower level</label></div>
 <div class="tabbed-content">
