@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import os
 import re
+from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
@@ -71,7 +73,12 @@ class ParquetCache:
         return self.path_for(key).exists()
 
     def save(self, key: str, frame: DataFrame) -> Path:
-        """Write a Pandas or Polars frame to the cache.
+        """Write a Pandas or Polars frame to the cache atomically.
+
+        The frame is written to ``.<name>.<pid>.tmp`` in the destination
+        directory and then moved into place with :meth:`pathlib.Path.replace`.
+        Readers therefore see either the previous complete file or the new
+        complete file, never a partial write.
 
         Args:
             key: Logical cache key.
@@ -82,25 +89,34 @@ class ParquetCache:
             The path of the written Parquet file.
 
         Raises:
-            OSError: If the file cannot be written.
+            OSError: If the file cannot be written or replaced.
         """
         path = self.path_for(key)
         path.parent.mkdir(parents=True, exist_ok=True)
-        if isinstance(frame, pl.DataFrame):
-            frame.write_parquet(path)
-        else:
-            frame.to_parquet(path, engine="pyarrow", index=False)
+        temporary = path.with_name(f".{path.name}.{os.getpid()}.tmp")
+        try:
+            if isinstance(frame, pl.DataFrame):
+                frame.write_parquet(temporary)
+            else:
+                frame.to_parquet(temporary, engine="pyarrow", index=False)
+            temporary.replace(path)
+        except Exception:
+            temporary.unlink(missing_ok=True)
+            raise
         return path
 
     def load(self, key: str, *, engine: Engine = "pandas") -> DataFrame | None:
         """Read a cached frame, if present.
+
+        A file that cannot be decoded is removed and reported as a cache miss.
 
         Args:
             key: Logical cache key.
             engine: Output engine, ``"pandas"`` (default) or ``"polars"``.
 
         Returns:
-            The cached frame, or ``None`` when no file exists for ``key``.
+            The cached frame, or ``None`` when no readable file exists for
+            ``key``.
 
         Raises:
             ValueError: If ``engine`` is not ``"pandas"`` or ``"polars"``.
@@ -109,10 +125,18 @@ class ParquetCache:
         if not path.exists():
             return None
         if engine == "polars":
-            return pl.read_parquet(path)
+            return self._read(path, pl.read_parquet)
         if engine == "pandas":
-            return pd.read_parquet(path, engine="pyarrow")
+            return self._read(path, lambda target: pd.read_parquet(target, engine="pyarrow"))
         raise ValueError(f"Unsupported dataframe engine: {engine!r}")
+
+    @staticmethod
+    def _read(path: Path, reader: Callable[[Path], DataFrame]) -> DataFrame | None:
+        try:
+            return reader(path)
+        except Exception:
+            path.unlink(missing_ok=True)
+            return None
 
     def update(
         self,

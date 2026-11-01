@@ -78,6 +78,15 @@ def test_missing_key_returns_none(tmp_path: Path) -> None:
     assert not cache.exists("nope")
 
 
+def test_corrupted_parquet_is_evicted(tmp_path: Path) -> None:
+    cache = ParquetCache(tmp_path)
+    path = cache.path_for("broken")
+    path.write_bytes(b"not a parquet file")
+
+    assert cache.load("broken") is None
+    assert not path.exists()
+
+
 def test_key_is_sanitized(tmp_path: Path) -> None:
     cache = ParquetCache(tmp_path)
     path = cache.path_for("../../evil key")
